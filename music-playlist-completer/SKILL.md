@@ -65,7 +65,7 @@ python3 $S/alt_source_dl.py --artist 某歌手 --todo $TODO --out $OUT --dry-run
 ```json
 {
   "netease_cookie": "MUSIC_U=xxxx",
-  "qq_uin": "1007726770",
+  "qq_uin": "<你的QQ号>",
   "qq_keyst": "Q_H_L_xxxx",
   "qq_cookie": ""
 }

@@ -13,10 +13,6 @@ GooseSkills/
 │   ├── music-library-organizer/
 │   ├── fnos-playlist-creator/
 │   └── README.md
-├── music-playlist-exporter/  # ↑ 四个音乐技能的发布副本（与 music-suite/ 内同步）
-├── music-playlist-completer/
-├── music-library-organizer/
-├── fnos-playlist-creator/
 ├── obsidian-vault-manager/   # Obsidian 仓库管理：双链织网、摘要标签、MOC、断链检查
 └── tools/                    # 工作数据（查重报告、删除计划等，不纳入版本管理）
 ```
@@ -33,10 +29,11 @@ GooseSkills/
 ```bash
 git clone https://github.com/GooseAgentAI/GooseSkills.git
 # 单个技能
-cp -r GooseSkills/music-library-organizer ~/.workbuddy/skills/
-# 音乐全家桶（推荐：带总台自动路由）
-cp -r GooseSkills/music-suite/music-suite ~/.workbuddy/skills/
-cp -r GooseSkills/music-suite/music-* GooseSkills/music-suite/fnos-playlist-creator ~/.workbuddy/skills/
+cp -r GooseSkills/obsidian-vault-manager ~/.workbuddy/skills/
+# 音乐全家桶（推荐：带总台自动路由）—— 需另行获取 music-suite 仓库
+cd GooseSkills/music-suite
+cp -r music-suite music-playlist-exporter music-playlist-completer \
+      music-library-organizer fnos-playlist-creator ~/.workbuddy/skills/
 ```
 
 各技能独立可用；凭证（网易云/QQ cookie、飞牛账号）一律走环境变量或 `~/.config` 下的配置文件，不随仓库分发。

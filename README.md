@@ -14,7 +14,7 @@ GooseSkills/
 │   ├── fnos-playlist-creator/
 │   └── README.md
 ├── obsidian-vault-manager/   # Obsidian 仓库管理：双链织网、摘要标签、MOC、断链检查
-└── tools/                    # 工作数据（查重报告、删除计划等，不纳入版本管理）
+└── README.md
 ```
 
 ## 技能速览

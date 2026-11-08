@@ -20,7 +20,7 @@
     "qq_cookie": ""                          # 或完整 QQ cookie，二选一
   }
 """
-import json, os, re, unicodedata
+import json, os, re, sys, unicodedata
 
 UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
       "(KHTML, like Gecko) Chrome/120.0 Safari/537.36")
@@ -34,6 +34,68 @@ NE_HOSTS = ["m801", "m802", "m803", "m701", "m800", "m700", "m702", "m703"]
 
 DEFAULT_CONFIG = "~/.config/music-downloader/config.json"
 DEFAULT_OUT = "music-downloads"
+
+# ---------------------------------------------------------------- 操作台账
+# 已下载歌曲的完成状态记录（与 music-library-organizer 共用同一份台账文件）。
+# 台账按「歌曲身份键 norm(歌手 - 歌名)」记账，entry.file 记录落盘位置；
+# 文件被删 → 条目自动失效 → 下次重新下载；文件还在 → 直接跳过，不再下载。
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+try:
+    import library_ledger as _ledger_mod
+except Exception:
+    _ledger_mod = None
+
+DOWNLOAD_OP = "download"   # 台账操作名：歌单补全下载
+
+
+def ledger_init():
+    """加载台账（模块缺失或文件损坏时返回 None，功能静默降级）。"""
+    if _ledger_mod is None:
+        return None
+    try:
+        return _ledger_mod.load()
+    except Exception:
+        return None
+
+
+def ledger_save(ledger):
+    if _ledger_mod is not None and ledger is not None:
+        try:
+            _ledger_mod.save(ledger)
+        except Exception:
+            pass
+
+
+def dl_key(artist, title):
+    """下载台账的歌曲身份键（与 build_missing_list 的本地匹配键一致）。"""
+    return norm(f"{artist} - {title}")
+
+
+def ledger_skip(ledger, artist, title):
+    """台账命中（已下载过且文件仍在）→ True，本次跳过下载。
+
+    用 exists 模式：之后补歌词/封面会改文件的 mtime/size，但歌已经在了，
+    不应重新下载；只有文件被删才视为未完成。
+    """
+    if ledger is None:
+        return False
+    try:
+        return _ledger_mod.key_done(ledger, DOWNLOAD_OP, dl_key(artist, title),
+                                    mode="exists")
+    except Exception:
+        return False
+
+
+def ledger_mark(ledger, artist, title, file_path, detail=""):
+    """下载成功后记账。"""
+    if ledger is None:
+        return
+    try:
+        _ledger_mod.record(ledger, DOWNLOAD_OP, file_path,
+                           detail=detail, path_key=dl_key(artist, title))
+    except Exception:
+        pass
 
 
 def resolve_config(cli_path=None):
@@ -75,6 +137,13 @@ def norm(s):
     """标准化字符串用于比较：去空白/标点/括号注释，转小写。"""
     s = unicodedata.normalize("NFC", s or "").lower()
     return re.sub(r"[\s\-_·、,，.。!！?？\"'“”‘’()（）\[\]【】《》&/\\+~]+", "", s)
+
+
+def title_variants(title):
+    """搜索用标题变体：[完整标题, 去括号说明后的核心名]。"""
+    t = unicodedata.normalize("NFC", title or "").strip()
+    core = re.sub(r"[（(【\[].*?[）)】\]]", "", t).strip() or t
+    return [t] if core == t else [t, core]
 
 
 def magic_ext(head):

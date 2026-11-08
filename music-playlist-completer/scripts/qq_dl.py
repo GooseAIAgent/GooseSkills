@@ -16,7 +16,8 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from mcommon import (UA, QQ_LADDER, load_config, resolve_out, safe, norm,
-                     magic_ext, existing, tag, download, add_common_args)
+                     magic_ext, existing, tag, download, add_common_args,
+                     ledger_init, ledger_save, ledger_skip, ledger_mark)
 
 DIR_QQ = None
 MANIFEST = None
@@ -201,6 +202,16 @@ def main():
         sys.exit(1)
     print(f"登录 uin={uin} cookie长度={len(ck)}", flush=True)
     items = json.load(open(a.list, encoding="utf-8"))
+
+    # 台账过滤：之前已下载且文件仍在的曲目直接跳过
+    ledger = ledger_init()
+    if ledger is not None:
+        before = len(items)
+        items = [it for it in items if not ledger_skip(ledger, it["a"], it["t"])]
+        skipped = before - len(items)
+        if skipped:
+            print(f"台账命中：跳过已下载 {skipped} 首", flush=True)
+
     st = {}; fmt = {}
     with ThreadPoolExecutor(max_workers=a.workers) as ex:
         futs = {ex.submit(handle, it, ck, uin, a.relax): it for it in items}
@@ -217,6 +228,11 @@ def main():
                 fmt[rec["fmt"]] = fmt.get(rec["fmt"], 0) + 1
                 with open(MANIFEST, "a", encoding="utf-8") as f:
                     f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+                if ledger is not None and status in ("完成", "待核"):
+                    ledger_mark(ledger, it["a"], it["t"],
+                                os.path.join(DIR_QQ, rec["file"]),
+                                detail=f"qq {rec['fmt']} {rec['kbps']}k {rec.get('match', '')}")
+                    ledger_save(ledger)
             print(f"[{i}/{len(items)}] {status:<4} {msg:<24} {it['a']} - {it['t']}", flush=True)
     print(f"\nQQ 完成 {st} 格式 {fmt}", flush=True)
 

@@ -17,7 +17,8 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from mcommon import (UA, NE_LADDER, NE_HOSTS, load_config, resolve_out, safe, norm,
-                     magic_ext, existing, tag, download, add_common_args)
+                     magic_ext, existing, tag, download, add_common_args,
+                     ledger_init, ledger_save, ledger_skip, ledger_mark)
 
 DIR_NE = None
 MANIFEST = None
@@ -180,6 +181,16 @@ def main():
         sys.exit(1)
     os.makedirs(DIR_NE, exist_ok=True)
     items = json.load(open(a.list, encoding="utf-8"))
+
+    # 台账过滤：之前已下载且文件仍在的曲目直接跳过
+    ledger = ledger_init()
+    if ledger is not None:
+        before = len(items)
+        items = [it for it in items if not ledger_skip(ledger, it["a"], it["t"])]
+        skipped = before - len(items)
+        if skipped:
+            print(f"台账命中：跳过已下载 {skipped} 首", flush=True)
+
     st = {}; fmt = {}
     with ThreadPoolExecutor(max_workers=a.workers) as ex:
         futs = {ex.submit(handle, it, ck): it for it in items}
@@ -192,6 +203,11 @@ def main():
                 fmt[rec["fmt"]] = fmt.get(rec["fmt"], 0) + 1
                 with open(MANIFEST, "a", encoding="utf-8") as f:
                     f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+                if ledger is not None and status == "完成":
+                    ledger_mark(ledger, it["a"], it["t"],
+                                os.path.join(DIR_NE, rec["file"]),
+                                detail=f"reid {rec['fmt']} {rec['kbps']}k")
+                    ledger_save(ledger)
             print(f"[{i}/{len(items)}] {status:<4} {msg:<24} {it['a']} - {it['t']}", flush=True)
     print(f"\n替代ID完成 {st} 格式 {fmt}", flush=True)
 

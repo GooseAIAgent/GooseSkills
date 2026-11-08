@@ -19,7 +19,8 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from mcommon import (UA, NE_LADDER, NE_HOSTS, load_config, resolve_out, safe,
-                     magic_ext, existing, tag, download, add_common_args)
+                     magic_ext, existing, tag, download, add_common_args,
+                     ledger_init, ledger_save, ledger_skip, ledger_mark)
 
 DIR_NE = None      # 运行时由 --out 注入
 MANIFEST = None
@@ -159,6 +160,16 @@ def main():
     items = json.load(open(a.list, encoding="utf-8"))
     if a.offset: items = items[a.offset:]
     if a.limit: items = items[:a.limit]
+
+    # 台账过滤：之前已下载且文件仍在的曲目直接跳过，不发任何请求
+    ledger = ledger_init()
+    if ledger is not None:
+        before = len(items)
+        items = [it for it in items if not ledger_skip(ledger, it["a"], it["t"])]
+        skipped = before - len(items)
+        if skipped:
+            print(f"台账命中：跳过已下载 {skipped} 首", flush=True)
+
     st = {"完成": 0, "无音源": 0, "已存在": 0, "失败": 0, "待核": 0}
     fmt = {}
     t0 = time.time(); done = 0
@@ -179,6 +190,11 @@ def main():
                 if status == "待核":
                     with open(REVIEW, "a", encoding="utf-8") as f:
                         f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+                if ledger is not None and status in ("完成", "待核"):
+                    ledger_mark(ledger, it["a"], it["t"],
+                                os.path.join(DIR_NE, rec["file"]),
+                                detail=f"netease {rec['fmt']} {rec['kbps']}k")
+                    ledger_save(ledger)
             if status != "已存在":
                 print(f"[{done}/{len(items)}] {status:<4} {msg:<26} {it['a']} - {it['t']}", flush=True)
             if done % 50 == 0:

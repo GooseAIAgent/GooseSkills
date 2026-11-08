@@ -6,7 +6,7 @@
 用法：
   python3 qq_probe.py missing.json [--out DIR] [--config CFG]
 """
-import csv, json, os, sys
+import argparse, csv, json, os, sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))

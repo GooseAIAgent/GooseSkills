@@ -1,0 +1,19 @@
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+
+# 备份与临时产物
+.backup/
+
+# 工作记忆（本地日志，不公开发布）
+.workbuddy/
+
+# 独立仓库：music-suite 有自己的 git 历史，单独推送
+music-suite/
+
+# 工作数据（不纳入版本管理；如需公开可移除对应行）
+毛不易下载/
+tools/

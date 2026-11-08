@@ -9,7 +9,7 @@
 注意：qm_keyst / uin 是 HttpOnly cookie，浏览器 document.cookie 读不到；
 需要在 DevTools Network 面板从请求头复制完整 Cookie，或从 Application→Cookies 取。
 """
-import json, sys, os, re
+import argparse, json, sys, os, re
 import urllib.request
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))

@@ -60,12 +60,20 @@ GET /track/list?page=1&size=500
 
 | 端点 | 方法 | 说明 |
 |---|---|---|
-| `/playlist/list` | GET | 歌单列表 `data.list[]{name, guid, ...}` |
+| `/playlist/list` | GET | 歌单列表 `data.list[]{name, guid, ...}`（无曲目数、无顺序字段） |
 | `/playlist/create` | POST | `{"name": "..."}`（coverId 可省）；返回 `data.guid` |
+| `/playlist/delete` | POST | `{"guid": "..."}` → `{"code":0}`（实测可用，删除后歌单立刻从列表消失） |
 | `/playlist/add-track` | POST | `{"guid": "<歌单guid>", "trackGUIDs": ["...", ...]}`，批量 |
 | `/track/playlist-detail/list` | GET | **参数名是 `playlistGUID`**（不是 guid！）+ `page`/`size`；返回 `data.list[]` + `data.total` |
 
 ⚠️ 踩坑：`/track/playlist-detail/list?guid=...` 返回 `100002 invalid arguments`。正确参数：`playlistGUID`。
+
+### 曲目顺序（重要）
+
+1. **`add-track` 是「批内倒序」落库**：一批发 `[A,B,C,D,E]`，`playlist-detail/list` 回 `[E,D,C,B,A]`；跨批仍按批的先后追加（`[批2倒序][批1倒序]` 的排列是错的——实测是 `[批1倒序][批2倒序]…`）。
+   → 想让歌单按源顺序排列，**必须把每批 `trackGUIDs` 反转后再发**。2026-11-08 实测：正序发 2351 首得 12 段倒序；反转后逐首比对 `顺序完全一致: True`。
+2. **`playlist-detail/list` 的 `size` 上限是 100**：传 `size=10000` 只回 50 条、`size=500` 回 500 条但可能被中间件截断。取全量必须分页（`playlist_guids()` 已实现）。
+3. 服务端**不暴露顺序字段**（无 position/seq/sort），顺序完全由落库顺序决定，且没有 reorder 接口（前端 JS 里的 `reorder` 是视频解码器字段）——一旦写错只能 `--rebuild` 删除重建。
 
 ## 本机环境踩坑（重要）
 

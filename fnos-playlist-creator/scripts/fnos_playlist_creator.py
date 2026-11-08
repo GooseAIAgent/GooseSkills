@@ -173,9 +173,23 @@ def fnos_tracks(server, token, page_size=500):
     return tracks
 
 
+def playlist_guids(server, token, guid, size=100):
+    """分页拉取歌单内全部曲目 guid（服务端 size 上限 100，传更大会被截断）。"""
+    out, page = [], 1
+    while True:
+        d = fnos_api(server, token, "/track/playlist-detail/list",
+                     params={"playlistGUID": guid, "page": page, "size": size})
+        batch = (d.get("data") or {}).get("list") or []
+        out += [x.get("guid") for x in batch]
+        total = (d.get("data") or {}).get("total") or len(out)
+        if not batch or len(out) >= total:
+            return out
+        page += 1
+
+
 def build_indexes(tracks):
-    """路径索引 + 三级元数据索引。键均 NFC+norm；元数据键带时长供校验。"""
-    by_path, idx = {}, {"full": {}, "first": {}, "title": {}}
+    """路径索引 + 元数据四级索引（键均 NFC+norm；元数据键带时长供校验）。"""
+    by_path, idx = {}, {"full": {}, "first": {}, "title": {}, "raw": []}
     for t in tracks:
         g = t.get("guid")
         if not g:
@@ -193,6 +207,7 @@ def build_indexes(tracks):
         if artists and artists[0]:
             idx["first"].setdefault(norm(f"{artists[0]} - {title}"), []).append((g, dur))
         idx["title"].setdefault(norm(title), []).append((g, dur))
+        idx["raw"].append((norm(title), title, g, dur))
     return by_path, idx
 
 
@@ -204,6 +219,14 @@ def best_candidate(entries, dur):
         return entries[0][0]
     g, _ = min(entries, key=lambda x: abs(x[1] - dur))
     return g
+
+
+VER_RE = re.compile(r"(?i)(live|现场版?|演唱会|伴奏版?|纯音乐|instrumental|remix|dj版?|翻唱|cover|demo|片段)")
+
+
+def ver_tags(title):
+    """提取版本标记（Live/伴奏/翻唱…），用于拒绝「录音室 ↔ Live」这类跨版本误配。"""
+    return {m.group(1).lower() for m in VER_RE.finditer(title or "")}
 
 
 def match_item(item, by_path, idx):
@@ -225,6 +248,21 @@ def match_item(item, by_path, idx):
     g = best_candidate(idx["title"].get(norm(item["t"])), dur)
     if g and (dur <= 0 or abs(dur - dict(idx["title"].get(norm(item["t"]), [])).get(g, 0)) <= 1):
         return g, "歌名+时长"
+    # 5. 标题互相包含 + 时长 ≤2s：标题被影视剧/品牌后缀包裹（如「《小空》(茶小空二周年品牌歌)」）
+    #    版本标记必须一致，避免把 Live 当录音室（反之亦然）
+    nt, vreq = norm(item["t"]), ver_tags(item["t"])
+    if dur > 0 and len(nt) >= 2:
+        best = None
+        for ntitle, title, tg, tdur in idx["raw"]:
+            if len(ntitle) < 2 or (nt not in ntitle and ntitle not in nt):
+                continue
+            if ver_tags(title) != vreq:
+                continue
+            diff = abs(tdur - dur)
+            if diff <= 2 and (best is None or diff < best[0]):
+                best = (diff, tg)
+        if best:
+            return best[1], "标题包含+时长"
     return None, ""
 
 
@@ -242,6 +280,10 @@ def main():
     ap.add_argument("--server", default=os.environ.get("FNOS_SERVER", ""))
     ap.add_argument("--user", default=os.environ.get("FNOS_USER", ""))
     ap.add_argument("--password", default=os.environ.get("FNOS_PASS", ""))
+    ap.add_argument("--dedupe", action="store_true",
+                    help="同一曲目只保留首次出现（源歌单重复收录时用），仍保持原有相对顺序")
+    ap.add_argument("--rebuild", action="store_true",
+                    help="同名歌单已存在时先删除再重建（用于修顺序/彻底重刷）")
     ap.add_argument("--dry-run", action="store_true")
     a = ap.parse_args()
 
@@ -272,14 +314,21 @@ def main():
 
     # 3. 匹配
     guids, matched, unmatched = [], [], []
+    seen_g, duped = set(), 0
     for it in items:
         g, how = match_item(it, by_path, idx)
         if g:
+            if a.dedupe:
+                if g in seen_g:
+                    duped += 1
+                    continue
+                seen_g.add(g)
             guids.append(g)
             matched.append((it, how))
         else:
             unmatched.append(it)
-    print(f"匹配成功 {len(matched)}/{len(items)}，未匹配 {len(unmatched)}", flush=True)
+    print(f"匹配成功 {len(matched)}/{len(items)}，未匹配 {len(unmatched)}"
+          + (f"，去重丢弃 {duped}" if a.dedupe else ""), flush=True)
     how_stat = {}
     for _, h in matched:
         how_stat[h] = how_stat.get(h, 0) + 1
@@ -299,12 +348,14 @@ def main():
     # 4. 创建或幂等复用歌单
     d = fnos_api(server, token, "/playlist/list")
     pl = next((x for x in ((d.get("data") or {}).get("list") or []) if x.get("name") == name), None)
+    if pl and a.rebuild:
+        fnos_api(server, token, "/playlist/delete", payload={"guid": pl.get("guid")})
+        print(f"--rebuild：已删除同名歌单（{pl.get('guid')}）", flush=True)
+        pl = None
     if pl:
         guid = pl.get("guid")
         print(f"歌单已存在（{guid}），幂等补齐", flush=True)
-        d2 = fnos_api(server, token, "/track/playlist-detail/list",
-                      params={"playlistGUID": guid, "page": 1, "size": 10000})
-        existing = {x.get("guid") for x in ((d2.get("data") or {}).get("list") or [])}
+        existing = set(playlist_guids(server, token, guid))
         guids = [g for g in guids if g not in existing]
         print(f"过滤已在歌单中的 {len(existing)} 首后，待添加 {len(guids)} 首", flush=True)
     else:
@@ -316,10 +367,11 @@ def main():
     if not guid:
         sys.exit(f"拿不到歌单 guid: {d}")
 
-    # 5. 批量写入
+    # 5. 批量写入（服务端按「批内倒序」落库，实测验证：正序发送→列表倒序；故每批反向发送）
     for i in range(0, len(guids), a.batch):
         batch = guids[i:i + a.batch]
-        d = fnos_api(server, token, "/playlist/add-track", payload={"guid": guid, "trackGUIDs": batch})
+        d = fnos_api(server, token, "/playlist/add-track",
+                     payload={"guid": guid, "trackGUIDs": list(reversed(batch))})
         if d.get("code") != 0:
             sys.exit(f"add-track 批次 {i} 失败: {d}")
         print(f"  +{len(batch)}（累计 {min(i + a.batch, len(guids))}/{len(guids)}）", flush=True)

@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+.DS_Store
+
+# 运行产物：album_tags.py 在目标目录旁写下的查询缓存
+*_album_cache.json
+
+# 运行产物：native_title_rename.py 的改名记录
+rename-record.csv

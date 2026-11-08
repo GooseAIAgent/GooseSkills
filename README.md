@@ -6,14 +6,14 @@
 
 ```
 GooseSkills/
-├── music-suite/              # 音乐技能组（独立仓库，含总台路由 + 四个子技能）
-│   ├── music-suite/          # 总台：意图路由与组合流程编排（无脚本）
-│   ├── music-playlist-exporter/
-│   ├── music-playlist-completer/
-│   ├── music-library-organizer/
-│   ├── fnos-playlist-creator/
-│   └── README.md
-├── obsidian-vault-manager/   # Obsidian 仓库管理：双链织网、摘要标签、MOC、断链检查
+├── music-suite/                     # 音乐技能组（独立仓库，含总台路由 + 四个子技能）
+│   ├── music-suite/                 # 总台：意图路由与组合流程编排（无脚本）
+│   ├── music-playlist-exporter/     # 歌单获取：网易云/QQ 歌单抓取 → 本地库三层比对 → CSV + m3u8 导出
+│   ├── music-playlist-completer/    # 下载补全：缺失曲目三级音源下载（含 B 站/多音源兜底、歌手全集、元数据补全）
+│   ├── music-library-organizer/     # 库整理：统一命名、外语原名（译名）、标签修复、年份-专辑归档、歌词封面、查重
+│   ├── fnos-playlist-creator/       # 上 NAS：云歌单或 m3u8 → 飞牛音乐（fnOS）歌单三级匹配 + 幂等写入
+│   └── README.md                    # 音乐技能组说明与安装
+├── obsidian-vault-manager/          # Obsidian 仓库管理：双链织网、摘要标签、MOC、断链检查
 └── README.md
 ```
 

@@ -18,8 +18,8 @@
 - --dry-run 只打印计划。
 
 用法:
-    python3 organize_music.py /Volumes/media-2/music/毛不易 map.json --dry-run
-    python3 organize_music.py /Volumes/media-2/music/毛不易 map.json
+    python3 organize_music.py ~/Music/毛不易 map.json --dry-run
+    python3 organize_music.py ~/Music/毛不易 map.json
 """
 import argparse
 import hashlib

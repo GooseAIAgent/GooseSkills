@@ -14,17 +14,17 @@
 用法:
     # 全流程（联网抓取 + 本地比对 + 导出）
     python3 netease_to_m3u8.py "https://music.163.com/playlist?id=331332108" \
-        --music-root /Volumes/media-2/music --outdir ./歌单导出
+        --music-root ~/Music --outdir ./歌单导出
 
     # 离线模式：基于已有清单 CSV 重新比对本地库并导出（不联网）
     python3 netease_to_m3u8.py --csv 歌单完整清单.csv \
-        --music-root /Volumes/media-2/music --outdir ./歌单导出
+        --music-root ~/Music --outdir ./歌单导出
 
     # 小样本联网测试（只抓前 N 首，验证 API 可用性）
     python3 netease_to_m3u8.py <url> --limit 5 --outdir /tmp/test
 
     # 日后补全留空条目（可反复重跑，见 fill_playlist_paths.py）
-    python3 fill_playlist_paths.py 歌单.m3u8 --music-root /Volumes/media-2/music
+    python3 fill_playlist_paths.py 歌单.m3u8 --music-root ~/Music
 
 依赖：仅 Python 3.8+ 标准库（无需 cookie，无需 mutagen）。
 """
@@ -285,8 +285,8 @@ def main():
     ap.add_argument('playlist', nargs='?', help='歌单链接或纯数字 ID（联网模式）')
     ap.add_argument('--csv', help='已有清单 CSV（离线模式，跳过抓取）')
     ap.add_argument('--name', help='歌单名（离线模式下 CSV 文件名不含歌单名时用它命名输出）')
-    ap.add_argument('--music-root', default='/Volumes/media-2/music',
-                    help='本地音乐库根目录，默认 /Volumes/media-2/music')
+    ap.add_argument('--music-root', default=os.path.expanduser("~/Music"),
+                    help='本地音乐库根目录，默认 ~/Music')
     ap.add_argument('--outdir', default='./歌单导出', help='输出目录')
     ap.add_argument('--limit', type=int, default=0, help='只抓前 N 首（测试用）')
     args = ap.parse_args()

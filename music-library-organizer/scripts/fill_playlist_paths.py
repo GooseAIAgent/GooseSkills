@@ -7,7 +7,7 @@
 
 用法:
     python3 fill_playlist_paths.py 歌单.m3u8
-    python3 fill_playlist_paths.py 歌单.m3u8 --music-root /Volumes/media-2/music
+    python3 fill_playlist_paths.py 歌单.m3u8 --music-root ~/Music
     python3 fill_playlist_paths.py 歌单.m3u8 --dry-run     # 只看能补多少，不写文件
 
 匹配顺序（由严到宽）:
@@ -142,8 +142,8 @@ def match_one(label, idx, used_paths):
 def main():
     ap = argparse.ArgumentParser(description='补全 m3u8 歌单中留空条目的本地路径')
     ap.add_argument('playlist')
-    ap.add_argument('--music-root', default='/Volumes/media-2/music',
-                    help='本地音乐库根目录，默认 /Volumes/media-2/music')
+    ap.add_argument('--music-root', default=os.path.expanduser("~/Music"),
+                    help='本地音乐库根目录，默认 ~/Music')
     ap.add_argument('--dry-run', action='store_true', help='只报告，不写回文件')
     args = ap.parse_args()
 

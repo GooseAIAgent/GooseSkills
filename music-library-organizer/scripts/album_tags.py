@@ -201,7 +201,7 @@ def write_tags(path, title, artist, album, date, albumartist):
 
 def main():
     ap = argparse.ArgumentParser(description="从平台补全专辑信息并批量写入内嵌标签")
-    ap.add_argument("root", help="歌手目录，如 /Volumes/media-2/music/海来阿木")
+    ap.add_argument("root", help="歌手目录，如 ~/Music/海来阿木")
     ap.add_argument("--dry-run", action="store_true", help="只打印计划，不查询不写盘")
     ap.add_argument("--write-only", action="store_true", help="跳过查询，直接用缓存写标签")
     ap.add_argument("--cache", default=None, help="缓存 JSON 路径（默认 <root>/../.<歌手>_album_cache.json）")

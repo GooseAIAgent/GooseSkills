@@ -11,8 +11,8 @@
 - --dry-run 只打印计划不实际改名。
 
 用法:
-    python3 rename_songs.py /Volumes/media-2/music --dry-run
-    python3 rename_songs.py /Volumes/media-2/music
+    python3 rename_songs.py ~/Music --dry-run
+    python3 rename_songs.py ~/Music
     python3 rename_songs.py /path/to/dir --skip-dir "重复副本" --dry-run
 """
 import argparse

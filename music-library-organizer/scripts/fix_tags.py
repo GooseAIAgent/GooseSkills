@@ -14,8 +14,8 @@
 - 文件名分隔符支持 " - " 和 "-"（前者优先）；--check 只检查不修改。
 
 用法:
-    python3 fix_tags.py /Volumes/media-2/music/IU李知恩            # 修复
-    python3 fix_tags.py /Volumes/media-2/music/IU李知恩 --check    # 只检查
+    python3 fix_tags.py ~/Music/IU李知恩            # 修复
+    python3 fix_tags.py ~/Music/IU李知恩 --check    # 只检查
     python3 fix_tags.py /path --ext mp3                            # 只处理mp3
     python3 fix_tags.py /path --albumartist auto                   # 按文件名补 albumartist
 """

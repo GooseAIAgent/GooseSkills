@@ -5,7 +5,7 @@
 核心思想：每个批量操作（改名 / 写标签 / 补歌词 / 补封面 / 分类移动……）完成后，
 把成功处理的文件记入台账，同时记录文件的 mtime + size 指纹。下次做同类型操作时：
 
-  ledger.py undone 补歌词 /Volumes/media-2/music     # 只列出「没做过 或 做完后又变过」的文件
+  ledger.py undone 补歌词 ~/Music     # 只列出「没做过 或 做完后又变过」的文件
   ledger.py status                                   # 各操作各完成了多少
 
 文件只要 mtime 或 size 变了（被改名覆盖、重新下载、手工编辑标签），对应条目

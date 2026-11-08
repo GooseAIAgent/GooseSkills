@@ -11,11 +11,11 @@
 用法:
     # 全流程（联网抓取 + 本地比对 + 导出）
     python3 qq_to_m3u8.py "https://y.qq.com/n/ryqq/playlist/8888050823" \
-        --music-root /Volumes/media-2/music --outdir ./歌单导出
+        --music-root ~/Music --outdir ./歌单导出
 
     # 离线模式：基于已有清单 CSV 重新比对本地库并导出（不联网）
     python3 qq_to_m3u8.py --csv 歌单完整清单.csv --name "歌单名" \
-        --music-root /Volumes/media-2/music --outdir ./歌单导出
+        --music-root ~/Music --outdir ./歌单导出
 
     # 小样本联网测试
     python3 qq_to_m3u8.py <链接> --limit 5 --outdir /tmp/test
@@ -158,8 +158,8 @@ def main():
     ap.add_argument("playlist", nargs="?", help="歌单链接或纯数字 disstid（联网模式）")
     ap.add_argument("--csv", help="已有清单 CSV（离线模式，跳过抓取）")
     ap.add_argument("--name", help="歌单名（离线模式下用它命名输出）")
-    ap.add_argument("--music-root", default="/Volumes/media-2/music",
-                    help="本地音乐库根目录，默认 /Volumes/media-2/music")
+    ap.add_argument("--music-root", default=os.path.expanduser("~/Music"),
+                    help="本地音乐库根目录，默认 ~/Music")
     ap.add_argument("--outdir", default="./歌单导出", help="输出目录")
     ap.add_argument("--limit", type=int, default=0, help="只抓前 N 首（测试用）")
     args = ap.parse_args()

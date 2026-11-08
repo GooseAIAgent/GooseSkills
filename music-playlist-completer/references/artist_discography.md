@@ -31,7 +31,7 @@ python3 scripts/artist_songs.py <歌手名或网易云ID> --out <工作目录>
 ## 第 2 步：比对本地库
 
 ```bash
-python3 scripts/build_missing_list.py --playlist <歌手>-全部歌曲.csv --lib /Volumes/media-2/music --out ./music-downloads
+python3 scripts/build_missing_list.py --playlist <歌手>-全部歌曲.csv --lib ~/Music --out ./music-downloads
 ```
 
 台账自动跳过历史下载（exists 模式），无需手工干预。

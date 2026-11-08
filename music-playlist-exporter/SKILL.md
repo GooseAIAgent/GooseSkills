@@ -35,21 +35,21 @@ S=<本技能目录>/scripts
 
 # 网易云：全流程（抓取 + 本地比对 + CSV + 双 m3u8）
 python3 $S/netease_to_m3u8.py "https://music.163.com/playlist?id=331332108" \
-    --music-root /Volumes/media-2/music --outdir ./歌单导出
+    --music-root ~/Music --outdir ./歌单导出
 
 # QQ 音乐：链接或纯数字 disstid 均可（公开歌单无需登录）
 python3 $S/qq_to_m3u8.py "https://y.qq.com/n/ryqq/playlist/8888050823" \
-    --music-root /Volumes/media-2/music --outdir ./歌单导出
+    --music-root ~/Music --outdir ./歌单导出
 
 # 小样本联网测试（验证 API 可用性，只抓前 N 首）
 python3 $S/netease_to_m3u8.py <链接> --limit 5 --outdir /tmp/test
 
 # 离线模式：不重新抓取，基于已有清单重新比对 + 导出
 python3 $S/netease_to_m3u8.py --csv 歌单完整清单.csv --name "歌单名" \
-    --music-root /Volumes/media-2/music --outdir ./歌单导出
+    --music-root ~/Music --outdir ./歌单导出
 ```
 
-无需任何凭证或登录；`--music-root` 默认 `/Volumes/media-2/music`，按实际库传参。
+无需任何凭证或登录；`--music-root` 默认 `~/Music`，按实际库传参。
 
 ## 输出文件（`--outdir` 下，按歌单名命名）
 

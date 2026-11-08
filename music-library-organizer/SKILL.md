@@ -73,7 +73,7 @@ python3 $S/organize_music.py /path/to/歌手 map.json
 
 # 6. 歌单（m3u8）路径补全：把留空的 #EXTINF 条目按本地库回填绝对路径
 python3 $S/fill_playlist_paths.py 歌单.m3u8 --dry-run
-python3 $S/fill_playlist_paths.py 歌单.m3u8 --music-root /Volumes/media-2/music
+python3 $S/fill_playlist_paths.py 歌单.m3u8 --music-root ~/Music
 
 # 7. 扫描「哪些歌缺歌词/缺封面」（增量、可断点续扫）
 python3 $S/scan_tag_state.py /path/to/music
@@ -152,7 +152,7 @@ python3 $S/library_ledger.py mark lyrics <文件路径>... --detail netease
 python3 $S/library_ledger.py mark classify --from-json 处理记录.jsonl   # 每行 {"p": 路径}
 
 # 下次做同类型操作：先列出待办（只查 mtime，秒级），把清单喂给操作脚本
-python3 $S/library_ledger.py undone lyrics /Volumes/media-2/music
+python3 $S/library_ledger.py undone lyrics ~/Music
 python3 $S/library_ledger.py status                 # 各操作各完成多少、多少条过期
 
 # 维护

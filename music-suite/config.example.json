@@ -1,0 +1,13 @@
+{
+  "_说明": "复制本文件到下列路径后填写；不需要的项留空即可，脚本匿名也能工作，只是命中率略低。凭证绝不放进技能目录或提交到 Git。",
+  "_下载补全用路径": "~/.config/music-downloader/config.json",
+  "_音乐库整理用路径": "~/.config/music-library-organizer/config.json",
+  "_netease_cookie": "网易云网页版登录后，开发者工具 → Network → 任意 music.163.com 请求 → Cookie 里取 MUSIC_U=... 整段粘贴（需 MUSIC_U 与 __csrf）",
+  "netease_cookie": "",
+  "_qq_uin": "QQ 音乐网页版登录后的 uin（纯数字）",
+  "qq_uin": "",
+  "_qq_keyst": "HttpOnly，document.cookie 读不到：开发者工具 → Application → Cookie → 复制 qm_keyst 的值",
+  "qq_keyst": "",
+  "_qq_cookie": "也可整段粘贴 QQ 音乐 Cookie；填了 qq_uin + qq_keyst 就无需填这里",
+  "qq_cookie": ""
+}

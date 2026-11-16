@@ -1,0 +1,22 @@
+# 凭证与隐私 —— 绝不入库
+config.json
+*.local.json
+**/config.json
+!config.example.json
+.env
+
+# Python
+__pycache__/
+*.pyc
+
+# macOS
+.DS_Store
+
+# 运行产物（下载/导出/查重/改名记录）
+music-downloads/
+downloads/
+*.jsonl
+*.part
+*_album_cache.json
+rename-record.csv
+*-飞牛未匹配.csv

@@ -1,6 +1,6 @@
 # 工作流参考：平台歌单获取（网易云/QQ → 本地 m3u8）
 
-本文记录歌单获取侧的完整流程、API 细节与实战踩坑。下载补全侧见 music-playlist-completer 的 references/workflow.md。
+本文记录歌单获取侧的完整流程、API 细节与实战踩坑。下载补全侧见 `references/completer/workflow.md`。
 
 ## 一、全流程（首次导出）
 

@@ -4,20 +4,18 @@
 
 每个技能都是一个独立顶层目录，**按需安装，互不依赖**。当前提供两组：
 
-- **音乐工具组**（5 个技能，可只装常用的一两个，也可全套安装）
+- **音乐工具**（1 个技能 `music-suite`，四大模块合一）
 - **Obsidian 仓库管理**（1 个技能，独立使用）
 
 ## 技能一览
 
-### 音乐工具组
+### 音乐工具
 
 | 技能 | 定位 | 核心能力 |
 |---|---|---|
-| [music-suite](music-suite/SKILL.md) | **总台路由**（无脚本） | 识别音乐任务意图并分发到下面四个技能；编排「歌单下载 → 整理 → 上 NAS」组合流程 |
-| [music-playlist-exporter](music-playlist-exporter/SKILL.md) | 歌单获取与导出 | 抓取网易云 / QQ 歌单全量曲目（均无需登录）→ 与本地库三层比对 → 导出 CSV + 双版本 m3u8 |
-| [music-playlist-completer](music-playlist-completer/SKILL.md) | 歌曲下载补全 | 缺失清单 → 三级音源下载（网易云直下 → 替代 ID → QQ 兜底），仍有缺口可走 B 站 / 酷狗酷我咪咕 兜底；FLAC 优先、版本严格校验、台账幂等；含**歌手全集下载**与元数据补全 |
-| [music-library-organizer](music-library-organizer/SKILL.md) | 音乐库整理 | 统一「歌手 - 歌名」命名、外语歌名「原名（中文译名）」、修复内嵌标签、按「年份-专辑」归档、批量补歌词与封面、查重 |
-| [fnos-playlist-creator](fnos-playlist-creator/SKILL.md) | 歌单导入飞牛 NAS | 网易云 / QQ / 本地 m3u8 → 飞牛音乐（fnOS）：匿名抓取 → 曲库三级匹配 → 幂等写入 → 服务端复核 |
+| [music-suite](music-suite/SKILL.md) | **一站式音乐库管理**（四大模块合一） | ① 歌单导出：网易云/QQ 歌单抓取（无需登录）→ 本地库三层比对 → CSV + 双版本 m3u8<br>② 下载补全：三级音源 + B 站/多音源兜底、FLAC 优先、版本校验、台账幂等、歌手全集、元数据补全<br>③ 音乐库整理：统一命名、外语歌名「原名（译名）」、修标签、按年份-专辑归档、补歌词封面、查重<br>④ 导入飞牛 NAS：云歌单/m3u8 → 飞牛音乐，三级匹配 + 幂等写入 + 服务端复核 |
+
+> `music-suite` 把原先四个独立音乐技能合并为一个自包含技能：安装后只显示**一个**技能，却拥有全部功能，且模块之间可串成一条龙（抓歌单 → 下载补齐 → 整理归档 → 导入 NAS）。
 
 ### Obsidian
 
@@ -34,43 +32,35 @@ git clone https://github.com/GooseAgentAI/GooseSkills.git
 cd GooseSkills
 ```
 
-**只装 Obsidian**
+**安装音乐工具（推荐，只需一个目录）**
+
+```bash
+mkdir -p ~/.claude/skills
+cp -r music-suite ~/.claude/skills/
+```
+
+安装后在技能列表里只会看到一个 **music-suite**，直接用自然语言提需求即可，技能会自动路由到对应模块。
+
+**安装 Obsidian**
 
 ```bash
 cp -r obsidian-vault-manager ~/.claude/skills/
 ```
 
-**只装音乐（全套 5 个，推荐——带总台自动路由）**
-
-```bash
-mkdir -p ~/.claude/skills
-cp -r music-suite music-playlist-exporter music-playlist-completer \
-      music-library-organizer fnos-playlist-creator ~/.claude/skills/
-```
-
-**只装音乐里的某一个**（例如只下载补全）
-
-```bash
-cp -r music-playlist-completer ~/.claude/skills/
-```
-
-> 说明：不装 `music-suite` 总台时，各子技能仍可独立使用，只是需要你自己明确说出要用哪一个；装了总台则由它按意图自动分发。
-
 ## 目录结构
 
 ```
 GooseSkills/
-├── music-suite/                  # 总台：意图路由与组合流程编排（无脚本）
-├── music-playlist-exporter/      # 歌单获取：网易云/QQ 歌单抓取 → 本地库比对 → CSV + m3u8
-├── music-playlist-completer/     # 下载补全：三级音源 + B 站/多音源兜底 + 歌手全集 + 元数据
-├── music-library-organizer/      # 库整理：命名/标签/归档/歌词封面/查重
-├── fnos-playlist-creator/        # 上 NAS：云歌单或 m3u8 → 飞牛音乐
+├── music-suite/                  # 一站式音乐库管理（唯一入口 SKILL.md + scripts/ + references/）
+│   ├── SKILL.md                  # 路由决策 + 命令速查 + 安全红线
+│   ├── scripts/                  # 25 个脚本（歌单/下载/整理/飞牛 四模块平铺，共享台账一份）
+│   └── references/               # 详细文档，按模块分组：exporter/completer/organizer/fnos
 ├── obsidian-vault-manager/       # Obsidian：双链织网、摘要标签、MOC、断链检查
 ├── README.md
 └── LICENSE
 ```
 
-## 典型组合流程（音乐组）
+## 典型组合流程（music-suite）
 
 **A. 歌单下载一条龙**
 ```
@@ -95,7 +85,7 @@ completer（artist_songs.py 抓全集清单，自动过滤伴奏与可替代的 
 
 所有凭证一律走环境变量或 `~/.config` 下的配置文件，**绝不写入技能目录、绝不提交到仓库**：
 
-- 网易云 / QQ 音乐 cookie：见各技能的 `config.example.json`（匿名也能用，登录后音质与命中率更高）
+- 网易云 / QQ 音乐 cookie：见 `music-suite/config.example.json`（匿名也能用，登录后音质与命中率更高）
 - 飞牛 NAS 账号：`FNOS_SERVER` / `FNOS_USER` / `FNOS_PASS` 环境变量
 
 ## 行为约定
@@ -106,7 +96,7 @@ completer（artist_songs.py 抓全集清单，自动过滤伴奏与可替代的 
 
 ## 依赖
 
-Python 3.8+（脚本基本只用标准库）；标签/歌词/封面写入需 `mutagen`。部分脚本需访问网易云、QQ 音乐、B 站等平台 API。
+Python 3.8+（脚本基本只用标准库）；标签/歌词/封面写入需 `mutagen`；飞牛模块需系统 `curl`；部分兜底与查重脚本可选依赖 `ffmpeg`。
 
 ## License
 
